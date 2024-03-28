@@ -41,7 +41,16 @@ def least_mean_squares(x, desired_signal, mu, h_init):
         #gets the inner product between the he flipped and the x_section
         #in order to get the next value for y
         y[n] = np.inner(h_reverse_ordered, x_section)
+
+        #using the desired signal, we get the error between the desired and actual signal
+        error[n] = desired_signal[n] - y[n]
+
+        #uses gradient descent in order to create a better h filter closer to the optimal h
+        #mu is a step size scaling factor. error(n) sets the scaling factor as well, which is
+        #adaptive. the larger the error, the larger the step. The smaller the error, the smaller
+        #the step. And adds the very section that we just used from the signal itself.
+        h = h + mu*x_section*error(n)
          
 
-
+    #returns the y, h, and 
     return y, h, error
