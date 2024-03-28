@@ -31,13 +31,16 @@ def least_mean_squares(x, desired_signal, mu, h_init):
 
     #n will start at the index that is the length of the h filter, and ends with the end of the signal
     for n in range(h_filter_length, signal_length):
-        #flips the h vector, for convolution
-        h_flipped = np.flip(h)
+        #flips the h vector, for proper convolution
+        h_reverse_ordered = np.flip(h)
 
         #gets the section of the x signal that we will use for getting the inner product
-        x_section = x[]
+        #the length of the section will be the length of the h filter
+        x_section = x[n:n+h_filter_length]
 
-        #gets the inner 
+        #gets the inner product between the he flipped and the x_section
+        #in order to get the next value for y
+        y[n] = np.inner(h_reverse_ordered, x_section)
          
 
 
