@@ -30,7 +30,7 @@ from least_mean_squares import least_mean_squares
 #sets the tuning parameters for the different parts of the lms adaptive filter
 
 #sets the mu step size scaling factor to pretty small to ensure convergence
-mu = 0.00001
+mu = 0.0001
 
 
 ########################################################################
@@ -106,7 +106,7 @@ y, h_estimated, error = least_mean_squares(p_audio, z_audio, mu, h_initial)
 
 #plots the error as a function of samples
 plt.figure()
-plt.plot(error[0:50000])
+plt.plot(error)
 
 
 #does a stem plot to compare the h_true, and h_estimated
