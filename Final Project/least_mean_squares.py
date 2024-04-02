@@ -43,7 +43,7 @@ def least_mean_squares(x, desired_signal, mu, h_init):
         #print("x_section size: ", np.size(x_section))
         #gets the inner product between the he flipped and the x_section
         #in order to get the next value for y
-        y[n] = np.inner(h, x_section)
+        y[n] = np.inner(h, x_section_reverse_ordered)
 
         #using the desired signal, we get the error between the desired and actual signal
         error[n] = desired_signal[n] - y[n]
