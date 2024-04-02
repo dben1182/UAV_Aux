@@ -95,8 +95,23 @@ plt.stem(h_estimated)
 plt.legend(['H estimated'])
 plt.title("Estimated H transfer function")
 
-print(h_estimated)
 
+#sets the number of samples of the freqz output
+worN = 1024
+
+#plots the frequency response of h_estimated transfer function
+w, h = sp.signal.freqz(h_estimated, a=1, worN=worN, fs=sampleRate)
+
+
+#gets the same in hertz
+w_hertz = w/(2*np.pi)
+
+#plots it out
+plt.figure()
+plt.title("LMS adapted filter frequency respons")
+plt.plot(w_hertz, np.abs(h))
+
+#from this output, we can see that 
 
 
 # %%
