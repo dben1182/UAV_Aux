@@ -3,6 +3,8 @@
 
 import numpy as np
 
+import matplotlib.pyplot as plt
+
 #this file takes as an input the x or input signal, the desired signal
 #the mu, which is the step size, and the h_init, which is the initial h
 #vector which is the adaptive FIR filter
@@ -15,7 +17,8 @@ def least_mean_squares(x, desired_signal, mu, h_init):
     signal_length = np.size(x)
 
     #sets the current h to the initial h, though this will change as time goes on
-    h = h_init
+    h = np.copy(h_init)
+
 
     #creates the error vector, which stores the error between y and the
     #desired signal
@@ -30,23 +33,26 @@ def least_mean_squares(x, desired_signal, mu, h_init):
 
 
     #n will start at the index that is the length of the h filter, and ends with a buffer of length h filter at the end
-    for n in range(0, signal_length-h_filter_length):
+    for n in range(h_filter_length, signal_length):
         #print("H size: ", np.size(h))
         #gets the section of the x signal that we will use for getting the inner product
         #the length of the section will be the length of the h filter
-        x_section = x[n:n + h_filter_length]
+        x_section = x[n-h_filter_length:n]
 
-        #gets the x_section_reverse_ordered
+        #gets the x_section_reverse_ordered by flipping it
         x_section_reverse_ordered = np.flip(x_section)
 
-        
         #print("x_section size: ", np.size(x_section))
         #gets the inner product between the he flipped and the x_section
         #in order to get the next value for y
+
         y[n] = np.inner(h, x_section_reverse_ordered)
 
         #using the desired signal, we get the error between the desired and actual signal
         error[n] = desired_signal[n] - y[n]
+
+
+        
 
         #uses gradient descent in order to create a better h filter closer to the optimal h
         #mu is a step size scaling factor. error(n) sets the scaling factor as well, which is
@@ -54,9 +60,7 @@ def least_mean_squares(x, desired_signal, mu, h_init):
         #the step. And adds the very section that we just used from the signal itself. In this case,
         #we need to flip this section of x to get proper convergence
         h = h + mu*x_section_reverse_ordered*error[n]
-
-
-         
+        
 
     #returns the y, h, and 
     return y, h, error

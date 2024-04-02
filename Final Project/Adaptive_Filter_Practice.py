@@ -10,8 +10,6 @@ import scipy as sp
 
 import time
 
-#imports the inline audio player
-import sounddevice as sd
 
 
 #gets the pyplot
@@ -38,7 +36,7 @@ mu = 0.001
 
 
 #reads in the z audio
-with open('audio_files/noise_cancel_z.csv', 'r') as file:
+with open('audio_files/other/z_audio.csv', 'r') as file:
     reader = csv.reader(file)
     z_audio = np.array(list(reader)).astype(np.float_)
 
@@ -49,7 +47,7 @@ print(z_audio)
 
 
 #reads the p audio
-with open('audio_files/noise_cancel_eta.csv', 'r') as file:
+with open('audio_files/other/p_audio.csv', 'r') as file:
     reader = csv.reader(file)
     eta_audio = np.array(list(reader)).astype(np.float_)
 
@@ -65,21 +63,12 @@ sampleRate = 8000
 z_time = np.size(z_audio)/sampleRate
 p_time = np.size(eta_audio)/sampleRate
 
-'''
-#plays z and p audios 
-sd.play(z_audio, sampleRate)
-time.sleep(z_time)
-sd.stop()
-
-sd.play(p_audio, sampleRate)
-time.sleep(z_time)
-sd.stop()'''
 
 
 #sets the h_initial to all zeros
 
 #sets the length of the h filter
-h_length = np.size(20)
+h_length = 120
 
 #creates the h_initial
 h_initial = np.zeros(h_length)
@@ -97,13 +86,16 @@ y, h_estimated, error = least_mean_squares(eta_audio, z_audio, mu, h_initial)
 #plots the error as a function of samples
 plt.figure()
 plt.plot(error)
+plt.title("Error as a function of samples")
 
 
 #does a stem plot to compare the h_true, and h_estimated
-#plt.figure()
-#plt.stem(h_true)
-#plt.stem(h_estimated)
-#plt.legend(['H true', 'H estimated'])
+plt.figure()
+plt.stem(h_estimated)
+plt.legend(['H estimated'])
+plt.title("Estimated H transfer function")
+
+print(h_estimated)
 
 
 
