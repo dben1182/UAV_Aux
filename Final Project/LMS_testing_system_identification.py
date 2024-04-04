@@ -59,6 +59,15 @@ with open('audio_files/other/p_audio.csv', 'r') as file:
 #converts to 1d array
 eta_audio = eta_audio[:,0]
 
+
+#reads in the h_true
+with open('audio_files/other/h_true.csv', 'r') as file:
+    reader = csv.reader(file)
+    h_true = np.array(list(reader)).astype(np.float_)
+
+#converts to 1d array
+h_true = h_true[0, :]
+
 print(eta_audio)
 
 #sets the sample rate to 8 kilohertz
@@ -73,7 +82,7 @@ p_time = np.size(eta_audio)/sampleRate
 #sets the h_initial to all zeros
 
 #sets the length of the h filter
-h_length = 120
+h_length = 101
 
 #creates the h_initial
 h_initial = np.zeros(h_length)
@@ -86,6 +95,9 @@ h_initial = np.zeros(h_length)
 y, h_estimated, error = least_mean_squares(eta_audio, z_audio, mu, h_initial)
 
 
+
+print(eta_audio)
+
 #%%
 
 #plots the error as a function of samples
@@ -93,12 +105,14 @@ plt.figure()
 plt.plot(error)
 plt.title("Error as a function of samples")
 
+print(np.size(h_true))
 
 #does a stem plot to compare the h_true, and h_estimated
 plt.figure()
 plt.stem(h_estimated)
-plt.legend(['H estimated'])
-plt.title("Estimated H transfer function")
+plt.stem(h_true, markerfmt='red')
+plt.legend(['H estimated', 'H true'])
+plt.title("Estimated H vs H true transfer function")
 
 
 #sets the number of samples of the freqz output

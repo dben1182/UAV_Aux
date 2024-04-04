@@ -37,10 +37,13 @@ def least_mean_squares(x, desired_signal, mu, h_init):
         #print("H size: ", np.size(h))
         #gets the section of the x signal that we will use for getting the inner product
         #the length of the section will be the length of the h filter
-        x_section = x[n-h_filter_length:n]
+        x_section = x[n-h_filter_length+1:n+1]
 
         #gets the x_section_reverse_ordered by flipping it
         x_section_reverse_ordered = np.flip(x_section)
+
+        if n == h_filter_length:
+            print(x_section_reverse_ordered)
  
         #print("x_section size: ", np.size(x_section))
         #gets the inner product between the he flipped and the x_section

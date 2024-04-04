@@ -9,6 +9,7 @@ import time
 import matplotlib.pyplot as plt
 import csv
 from least_mean_squares import least_mean_squares
+import sounddevice as sd
 ################################################################
 
 
@@ -26,7 +27,7 @@ with open('audio_files/noise_cancel_eta.csv', 'r') as file:
 eta_1_audio = eta_1_audio[:,0]
 
 #reads in the eta2 audio
-with open('audio_files/noise_cancel_eta2.csv;','r') as file:
+with open('audio_files/eta2.csv','r') as file:
     reader = csv.reader(file)
     eta_2_audio = np.array(list(reader)).astype(np.float_)    
 
@@ -62,7 +63,7 @@ filterLength = 20
 mu = 0.001
 
 #initializes the filter with zeros
-h_initial = np.zeros((filterLength, 1))
+h_initial = np.zeros(filterLength)
 
 ################################################################
 
@@ -78,6 +79,51 @@ h_initial = np.zeros((filterLength, 1))
 
 eta_hat, h_estimated, s_hat = least_mean_squares(eta_1_audio, z_1_audio, mu=mu, h_init=h_initial)
 
+#plots the estimated h_hat
+plt.figure()
+plt.stem(h_estimated)
+
+
+#sets the sample rate
+audioSampleRate = 8000
+
+#gets the number of samples of the signal
+signalLength = np.size(s_hat)
+
+print(signalLength)
+
+#sets the duration of the signal
+signalDuration = int(signalLength/audioSampleRate)
+
+
+eta2_hat, h_estimated2, s_hat2 = least_mean_squares(eta_2_audio, z_2_audio, mu = mu, h_init=h_initial)
+
+
+plt.figure()
+plt.stem(h_estimated2)
+plt.title("H estimated 2")
+
+'''
+#plays the s_hat audio file
+sd.play(s_hat, audioSampleRate)
+time.sleep(signalDuration)
+sd.stop()
+
+
+#plays the eta_hat
+sd.play(eta_hat, audioSampleRate)
+time.sleep(signalDuration)
+sd.stop()
+'''
+
+
+s_hat_2Length = np.size(s_hat2)
+s_hat_2_duration = s_hat_2Length/audioSampleRate
+
+#plays the s_hat2 audio file
+sd.play(s_hat2, audioSampleRate)
+time.sleep(s_hat_2_duration)
+sd.stop()
 
 ################################################################
 

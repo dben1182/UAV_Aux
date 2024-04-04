@@ -33,6 +33,10 @@ function [y, e, h] = lms(x, d, mu, h_init)
         %sets each y_temp output
         y_temp(n) = (h_temp.')*x(n:-1:(n-M+1));
         
+        if n == M+1
+            a = x(n:-1:(n-M+1))
+        end
+
         %subtracts the output from the desired output to get the error
         e_temp(n) = d(n) - y_temp(n);
         
