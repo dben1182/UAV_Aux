@@ -2,6 +2,11 @@
 
 
 #this file is used to re implement the adaptive filter from DSP last year
+#it identifies the system that took in z and produced x,
+#by creating its own system that takes in z and produces a y
+#which is remarkably close to x
+
+
 #########################################################################
 
 

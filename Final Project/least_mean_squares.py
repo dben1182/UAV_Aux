@@ -41,7 +41,7 @@ def least_mean_squares(x, desired_signal, mu, h_init):
 
         #gets the x_section_reverse_ordered by flipping it
         x_section_reverse_ordered = np.flip(x_section)
-
+ 
         #print("x_section size: ", np.size(x_section))
         #gets the inner product between the he flipped and the x_section
         #in order to get the next value for y
