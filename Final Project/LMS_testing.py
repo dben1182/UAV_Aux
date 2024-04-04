@@ -108,7 +108,7 @@ w_hertz = w/(2*np.pi)
 
 #plots it out
 plt.figure()
-plt.title("LMS adapted filter frequency respons")
+plt.title("LMS adapted filter frequency response")
 plt.plot(w_hertz, np.abs(h))
 
 #from this output, we can see that 
