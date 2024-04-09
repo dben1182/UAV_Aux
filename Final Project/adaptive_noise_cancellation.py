@@ -9,7 +9,7 @@ import time
 import matplotlib.pyplot as plt
 import csv
 from least_mean_squares import least_mean_squares
-import sounddevice as sd
+#import sounddevice as sd
 ################################################################
 
 
@@ -120,11 +120,12 @@ sd.stop()
 s_hat_2Length = np.size(s_hat2)
 s_hat_2_duration = s_hat_2Length/audioSampleRate
 
+'''
 #plays the s_hat2 audio file
 sd.play(s_hat2, audioSampleRate)
 time.sleep(s_hat_2_duration)
 sd.stop()
-
+'''
 ################################################################
 
 
