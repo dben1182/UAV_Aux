@@ -11,7 +11,7 @@ import scipy.signal as signal
 filterOrder = 3
 
 #sets the corner frequency
-cornerFrequency = 3000
+cornerFrequency = 300
 
 #sets the sampleFrequency
 sampleFreqency = 8000
@@ -43,7 +43,7 @@ zp.pz(transferFunction)
 
 
 #sets the signal length
-signalLength = 700
+signalLength = 400
 
 #creates a signal for the matrix
 x_signal = np.zeros((signalLength, 1))
@@ -60,9 +60,20 @@ y_signal = signal.lfilter(b, a, x_signal)
 #creates a new y signal
 y_signal_new = np.zeros((signalLength, 1))
 
+#sets the number of coefficients
+numCoefficients = N + M + 1
+
+#creates the a_k temp vector
+a_k = np.zeros((1, numCoefficients))
+
+A = np.zeros((signalLength, numCoefficients))
+
 #attempts to perform the summation to create each output sample
 for n in range(signalLength):
     #iterates through each of a coefficients
+
+    #resets a_k to zeros
+    a_k = np.zeros((1, numCoefficients))
     
     #creates the a sum variable
     a_sum = 0.0
@@ -72,6 +83,8 @@ for n in range(signalLength):
         if n - k >= 0:
             #adds the feedback sums
             a_sum = a_sum + a[k]*y_signal_new[n-k][0]
+            #adds the y signal sample to the a_k vector
+            a_k[0][k-1] = y_signal_new[n-k][0]
 
 
     #creates the b sum variable
@@ -82,23 +95,18 @@ for n in range(signalLength):
         if n - k >= 0:
             #adds the input signal sums
             b_sum = b_sum + b[k]*x_signal[n-k][0]
+            #adds the x_signal sample to the a_k vector
+            a_k[0][k+N] = x_signal[n-k][0]
+    
+    #adds a_k to the leading edge of the total A matrix
+    A[n,:] = a_k[0,:]
+
 
     #sets the y output signal to the sum
     y_signal_new[n][0] = -a_sum + b_sum
 
 
-y_signal_sanity_check = np.zeros((signalLength, 1))
-#creates sanity check y
-for n in range(10,signalLength):
-    a_sum = 0.0
-    for k in range(1,N+1):
-        a_sum = a_sum + a[k]*y_signal_sanity_check[n-k][0]
-    
-    b_sum = 0.0
-    for k in range(0, M+1):
-        b_sum = b_sum + b[k]*x_signal[n-k][0]
-    
-    y_signal_sanity_check[n][0] = -a_sum + b_sum
+
 
 #gets the error signal between the y_signal and the y_signal_new
 
@@ -114,11 +122,23 @@ print("Y Error: ", y_error[40:45])
 
 plt.figure()
 
+#plt.plot(x_signal[0:100])
 plt.plot(y_signal[0:100])
 plt.plot(y_signal_new[0:100])
-plt.plot(y_signal_sanity_check[0:100])
 
 
 
+#in order to prove that I actually am doing things right
+#I used matlab to filter the exact same x signal and
+matlab_y_signal = np.loadtxt("matlab_y_signal.csv", dtype='float')
+matlab_y_signal = matlab_y_signal[0:signalLength]
+matlab_y_signal_length = np.size(matlab_y_signal)
+print(matlab_y_signal_length)
+matlab_y_signal = matlab_y_signal.reshape((matlab_y_signal_length,1))
+print(matlab_y_signal)
 
-# %%
+plt.plot(matlab_y_signal[0:100])
+
+plt.legend(["Y signal from python built in", "Y signal by own algorition", "Y signal by Matlab"])
+
+#%%
