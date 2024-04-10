@@ -22,6 +22,7 @@ b, a = signal.butter(filterOrder, Wn=cornerFrequency, btype='low', fs=sampleFreq
 print("b: \n", b)
 print("a: \n", a)
 
+
 #gets M, which is the last index of b and the length of b
 b_size = np.size(b)
 M = b_size - 1
@@ -29,6 +30,16 @@ M = b_size - 1
 #gets N, which is the last index of a and the length of a
 a_size = np.size(a)
 N = a_size - 1
+
+
+#concatenates everything for the coefficients
+a_reshaped = a[1:]
+a_reshaped = a_reshaped.reshape((N,1))
+
+b_reshaped = b.reshape((b_size,1))
+
+coefficients = np.concatenate((a_reshaped, b_reshaped), axis=0)
+
 
 #gets the transfer function of the butterworth filter
 transferFunction = signal.TransferFunction(b, a)
@@ -52,16 +63,17 @@ for i in range(signalLength):
     x_signal[i][0] = np.cos((np.pi/17)*i + np.pi/2)
 
 
-#uses lfilter to create the y array
-y_signal = signal.lfilter(b, a, x_signal)
-
-
 
 #creates a new y signal
-y_signal_new = np.zeros((signalLength, 1))
+y_signal_correct = np.zeros((signalLength, 1))
 
 #sets the number of coefficients
 numCoefficients = N + M + 1
+
+#sets the parameters for the noise mean and variance
+noise_mean = 0.0
+noise_variance = 0.01
+
 
 #creates the a_k temp vector
 a_k = np.zeros((1, numCoefficients))
@@ -82,9 +94,10 @@ for n in range(signalLength):
         #checks to make sure that the y sample is within range
         if n - k >= 0:
             #adds the feedback sums
-            a_sum = a_sum + a[k]*y_signal_new[n-k][0]
-            #adds the y signal sample to the a_k vector
-            a_k[0][k-1] = y_signal_new[n-k][0]
+            a_sum = a_sum + a[k]*y_signal_correct[n-k][0]
+            #adds the y signal sample to the a_k vector. These need to
+            #be negated, because of the misrepresented part
+            a_k[0][k-1] = -1.0*y_signal_correct[n-k][0]
 
 
     #creates the b sum variable
@@ -102,29 +115,25 @@ for n in range(signalLength):
     A[n,:] = a_k[0,:]
 
 
-    #sets the y output signal to the sum
-    y_signal_new[n][0] = -a_sum + b_sum
+    #sets the y output signal to the sum, and adds a certain level of noise
+    y_signal_correct[n][0] = -a_sum + b_sum + np.random.normal(loc=noise_mean, scale=noise_variance)
 
 
 
 
 #gets the error signal between the y_signal and the y_signal_new
 
-y_error = y_signal_new - y_signal
 
-print("Max Error: ", np.max(y_error))
+
 
 #prints out the error over various positional indecies
+print("Y signal new: ", y_signal_correct[40:45])
 
-print("Y signal: ", y_signal[40:45])
-print("Y signal new: ", y_signal_new[40:45])
-print("Y Error: ", y_error[40:45])
 
 plt.figure()
 
 #plt.plot(x_signal[0:100])
-plt.plot(y_signal[0:100])
-plt.plot(y_signal_new[0:100])
+plt.plot(y_signal_correct[0:1000])
 
 
 
@@ -133,12 +142,34 @@ plt.plot(y_signal_new[0:100])
 matlab_y_signal = np.loadtxt("matlab_y_signal.csv", dtype='float')
 matlab_y_signal = matlab_y_signal[0:signalLength]
 matlab_y_signal_length = np.size(matlab_y_signal)
-print(matlab_y_signal_length)
+#print(matlab_y_signal_length)
 matlab_y_signal = matlab_y_signal.reshape((matlab_y_signal_length,1))
-print(matlab_y_signal)
+#print(matlab_y_signal)
 
-plt.plot(matlab_y_signal[0:100])
+plt.plot(matlab_y_signal[0:1000])
 
-plt.legend(["Y signal from python built in", "Y signal by own algorition", "Y signal by Matlab"])
+plt.legend(["Y signal with Noise", "Y signal without noise"])
 
-#%%
+
+#writes A, x, and y to csv
+np.savetxt("A.csv", A, delimiter=",")
+np.savetxt("X.csv", x_signal, delimiter=",")
+np.savetxt("Y.csv", y_signal_correct, delimiter=",")
+
+
+#calculates x using the batch pseudoinverse
+x_star = np.linalg.inv(A.T @ A) @ A.T @ y_signal_correct
+#prints the coefficients
+print("Coefficients: \n", coefficients)
+
+#prints the pseudoinverse and the error
+print("x star: \n", x_star)
+
+#prints the error
+error = x_star - coefficients
+print("Error: \n", error)
+
+
+
+
+# %%
