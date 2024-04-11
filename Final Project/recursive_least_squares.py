@@ -9,6 +9,7 @@ import zplane as zp
 import scipy.signal as signal
 import librosa as lib
 from linearFilter import linearFilter
+from a_N_constructor import a_N_constructor
 
 
 #------------------------------------------------------------------
@@ -17,12 +18,23 @@ from linearFilter import linearFilter
 #sets the filter order
 filterOrder = 3
 #sets the corner Frequency
-cornerFrequency = 2000
+cornerFrequency = 1000
 #sets the sample Frequency
-sampleFrequency = 8000
+filterSampleFrequency = 22050
 
 #gets the b and a from the butterworth filter
-b, a = signal.butter(filterOrder, Wn=cornerFrequency, btype='low', fs=sampleFrequency)
+b, a = signal.butter(filterOrder, Wn=cornerFrequency, btype='low', fs=filterSampleFrequency)
+
+print("b: ", b)
+print("a: ", a)
+
+
+#plots the frequency response of the butterworth filter
+w, h = signal.freqz(b, a, worN=1024, fs=filterSampleFrequency)
+
+plt.figure()
+plt.plot(w, np.abs(h))
+
 
 #gets the sizes of the b and a vector
 b_size = np.size(b)
@@ -51,16 +63,24 @@ numCoefficients = M + N + 1
 
 #-------------------------------------------------------------------
 #reads in an audio file
-x_signal, sampleRate = lib.load('Commanding_Image_Of_Christ.mp3')
+x_signal, audioSampleRate = lib.load('Commanding_Image_Of_Christ.mp3')
 
 #prints the sample Rate
-print("Sample Rate: ", sampleRate)
+print("Sample Rate: ", audioSampleRate)
 
 #gets the signal length
 signalLengthOld = np.size(x_signal)
 
 #sets the new signal Length, which is shortened. About four seconds equivalent
 signalLengthShort = 100000
+
+#creates the new signal
+x_signal_short = x_signal[0:signalLengthShort]
+
+#reshapes the x_signal_short
+x_signal_short = x_signal_short.reshape((signalLengthShort, 1))
+
+
 #-------------------------------------------------------------------
 
 
@@ -68,9 +88,27 @@ signalLengthShort = 100000
 #-------------------------------------------------------------------
 #runs the linear filter on the signals with the a and bs
 
-y_signal = linearFilter(b, a, x_signal)
+y_signal = linearFilter(b, a, x_signal_short)
+
+#sets the plotting limits
+plotLower = 20000
+plotUpper = 20500
 
 
+plt.figure()
+#plots the x_signal shortened
+plt.plot(x_signal_short[plotLower:plotUpper])
+plt.plot(y_signal[plotLower:plotUpper])
+
+
+
+#creates a simple test signal to run the test on
+test_signal = np.zeros((signalLengthShort, 1))
+
+for i in range(signalLengthShort):
+    test_signal[i][0] = np.cos((np.pi/24)*i)
+
+testSignalOutput = linearFilter(b, a, test_signal)
 
 #-------------------------------------------------------------------
 
@@ -90,19 +128,97 @@ y_signal = linearFilter(b, a, x_signal)
 noiseMean = 0.0
 noiseVariance = 0.01
 
+
+#creates the alpha variable, which is the constant that we use to initialize the P matrix
+alpha = 100000
+
 #creates the x_star variable, which is the estimate of x updated with each sample
 #initializes x_star to all zeros
-x_star = np.zeros((numCoefficients, 1))
+x_star_recursive = np.zeros((numCoefficients, 1))
 
-#iterates through for each y sample
+#temporarily tries to initializes the x_star vector to a closer estimate
+'''x_star = np.array([[-2.0],
+                   [2.0],
+                   [-5.5e-01],
+                   [2.0e-03],
+                   [2.0e-03],
+                   [2.0e-03],
+                   [2.0e-03]])
+'''
 
+#creates the P matrix
+P = alpha*np.eye(numCoefficients)
+
+#creates the changing error vector
+errorChange = np.zeros((signalLengthShort,1))
+
+#creates the A matrix to contain all the a_N matricies
+A = np.zeros((signalLengthShort, numCoefficients))
+
+#iterates through for each y sample to run the recursive least squares algorithm
 for n in range(signalLengthShort):
     
+    #gets a_N for this particular iteration
+    a_N = a_N_constructor(x_signal_short, y_signal, M=M, N=N, n=n)
+
+    #constructs the full A matrix for comparison
+    A[n,:] = a_N.T
+
+    #gets temp to help with the kalman gain
+    temp = a_N.T @ P @ a_N
+    #gets the kalman gain
+    k_n = (P @ a_N)/(1.0 + temp[0][0])
+
+    #gets the P matrix update
+    P = P - k_n @ a_N.T @ P
+
+    #gets the x_star update
+    x_star_recursive = x_star_recursive + k_n*(y_signal[n][0] - (a_N.T @ x_star_recursive)[0][0])
+
+
+    #I think that the problem has something to do with the negative a coefficients
+    #or some problem related thereto, because the error is exceedingly small at those numbers
+    #prints the k_n
+
+    #gets the error vector
+    error = x_star_recursive - coefficients
+
+    #plots the magnitude squared of the error
+    error_magnitude = (np.linalg.norm(error))**2
+
+    errorChange[n][0] = error_magnitude
+
+
+#gets the x star using the batch methods
+x_star_batch = np.linalg.inv(A.T @ A) @ A.T @ y_signal
+
+#prints the actual coefficients
+print("Coefficients: \n", coefficients)
+
+#prints the final recursive x_star
+print("x star recursive: \n", x_star_recursive)
+
+#prints the recursive x_star error
+x_star_recursive_error = x_star_recursive - coefficients
+print("x star recursive error: \n", x_star_recursive_error)
+
+#prints the batch x_star
+print("x star batch: \n", x_star_batch)
+
+#gets the x_star_batch_error
+x_star_batch_error = x_star_batch - coefficients
+print("batch error: \n", x_star_batch_error)
 
 
 
+#plots the magnitude of the error
+plt.figure()
+plt.yscale("log")
+plt.plot(errorChange)
 
 #-------------------------------------------------------------------
 
 
 
+
+# %%

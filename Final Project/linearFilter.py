@@ -2,6 +2,9 @@
 import numpy as np
 
 
+#both input x and output y are 2d column vectors
+
+
 #takes as an argument the b coefficients, which define the zeros
 #and the a coefficients which define the poles of the system
 #and the signal itself
@@ -28,8 +31,10 @@ def linearFilter(b, a, x):
             
             #checks to make sure we are indexing within bounds
             if n - k >= 0:
+
                 #adds the feedback terms to the sum
                 a_sum = a_sum + a[k]*y[n-k][0]
+
 
         #sets the sum for the input portion of the filter
         b_sum = 0.0
@@ -40,8 +45,8 @@ def linearFilter(b, a, x):
             if n - k >= 0:
                 #adds the b sum together
                 b_sum = b_sum + b[k]*x[n-k][0]
-
         #sets the y output samples
+
         y[n][0] = b_sum - a_sum
 
     #returns the y signal
