@@ -153,7 +153,9 @@ P = alpha*np.eye(numCoefficients)
 errorChange = np.zeros((signalLengthShort,1))
 
 #creates the A matrix to contain all the a_N matricies
+#we will use this to test our recursive least squares
 A = np.zeros((signalLengthShort, numCoefficients))
+
 
 #iterates through for each y sample to run the recursive least squares algorithm
 for n in range(signalLengthShort):
@@ -161,8 +163,11 @@ for n in range(signalLengthShort):
     #gets a_N for this particular iteration
     a_N = a_N_constructor(x_signal_short, y_signal, M=M, N=N, n=n)
 
-    #constructs the full A matrix for comparison
+    #adds a_N to the main A matrix
     A[n,:] = a_N.T
+
+
+
 
     #gets temp to help with the kalman gain
     temp = a_N.T @ P @ a_N
@@ -175,6 +180,19 @@ for n in range(signalLengthShort):
     #gets the x_star update
     x_star_recursive = x_star_recursive + k_n*(y_signal[n][0] - (a_N.T @ x_star_recursive)[0][0])
 
+
+    #if we are at the appropriate indecies, we calculate a batch least squares
+    #and compare them to the recursive least squares
+    if n % 20000 == 5000:
+        A_Section = A[0:n,:]
+        #gets the corresponding section of y
+        y_section = y_signal[0:n,:]
+        #calculates the intermediate batch least squares
+        x_star_intermediate = np.linalg.inv(A_Section.T @ A_Section) @ A_Section.T @ y_section
+
+        #print("batch x star n = ", n, "\n", x_star_intermediate)
+        #print("recursive x star: \n", x_star_recursive)
+        print("P: \n", P)
 
     #I think that the problem has something to do with the negative a coefficients
     #or some problem related thereto, because the error is exceedingly small at those numbers
@@ -189,9 +207,6 @@ for n in range(signalLengthShort):
     errorChange[n][0] = error_magnitude
 
 
-#gets the x star using the batch methods
-x_star_batch = np.linalg.inv(A.T @ A) @ A.T @ y_signal
-
 #prints the actual coefficients
 print("Coefficients: \n", coefficients)
 
@@ -202,14 +217,14 @@ print("x star recursive: \n", x_star_recursive)
 x_star_recursive_error = x_star_recursive - coefficients
 print("x star recursive error: \n", x_star_recursive_error)
 
-#prints the batch x_star
-print("x star batch: \n", x_star_batch)
 
-#gets the x_star_batch_error
-x_star_batch_error = x_star_batch - coefficients
-print("batch error: \n", x_star_batch_error)
+#gets the final batch x star
+x_star_batch_final = np.linalg.inv(A.T @ A) @ A.T @ y_signal
+print("x star batch final: \n", x_star_batch_final)
 
-
+#gets the final batch x star error
+x_star_batch_final_error = x_star_batch_final - coefficients
+print("x star batch final error: \n", x_star_batch_final_error)
 
 #plots the magnitude of the error
 plt.figure()
