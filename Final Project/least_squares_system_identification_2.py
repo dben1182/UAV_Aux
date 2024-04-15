@@ -164,11 +164,72 @@ print("Initial error: \n", initialError)
 a_N = a_N_constructor(x_signal_shortened, y_signal, M=M, N=N, n=numSamplesInitial)
 
 
+#--------Batch Portion-------------------------------------
+
 
 #creates the next bigger A matrix
-A = np.append(A_initial, a_N.T, axis=0)
+A_test = np.append(A_initial, a_N.T, axis=0)
 
+P_N_batch = np.linalg.inv(A_test.T @ A_test)
 
+#gets the new y to compare, which is 1 longer than
+#the 
+y_batch_test = y_signal[:(numSamplesInitial + 1),:]
+
+#gets x_star_batch using the pseudoinvers
+x_star_batch = np.linalg.inv(A_test.T @ A_test) @ A_test.T @ y_batch_test
+
+#---------Kalman Filter portion----------------------------
+#gets the same thing, but using the computational efficiency
+#of the kalman filter algorithm
+
+#gets the kalman gain helper
+kalman_helper = a_N.T @ P_N_initial @ a_N
+
+#gets the kalman gain
+k_N = P_N_initial @ a_N/(1.0 + kalman_helper[0][0])
+
+#gets the new P_N
+P_N_kalman = P_N_initial - k_N @ a_N.T @ P_N_initial
+
+#gets the new x_n
+x_star_kalman = x_star_init + k_N*(y_signal[numSamplesInitial] - (a_N.T @ x_star_init)[0][0])
+
+#prints the x_star_kalman
+print("x star kalman: \n", x_star_kalman)
+
+#gets the difference between the batch and kalman x stars
+batch_and_kalman_difference = x_star_kalman - x_star_batch
+print("kalman vs batch difference: \n", batch_and_kalman_difference)
+
+#gets the difference between the batch and kalman P_N's
+P_N_difference = P_N_batch - P_N_kalman
+
+#prints the difference
+print("P_N difference: \n", P_N_difference)
 
 
 # %%
+
+#does multiple update runs for the kalman filter
+
+#initializes the A matrix
+A = np.copy(A_initial)
+
+#initializes the P_N matrix
+P_N = np.copy(P_N_initial)
+
+#sets the index to go up to for the test
+kalmanTestIndex = 11
+
+for n in range(numSamplesInitial,kalmanTestIndex):
+    #gets the a_N vector
+    a_N = a_N_constructor(x_signal_shortened, y_signal, M=M, N=N, n=n):
+
+    #gets the kalman helper 
+    kalman_helper = a_N.T @ P_N @ a_N
+
+    #gets the kalman gain
+    k_N = P_N @ a_N.T/(1.0 + kalman_helper[0][0])
+
+    #updates the P_N   
