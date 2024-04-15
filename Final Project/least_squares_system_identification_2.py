@@ -179,6 +179,8 @@ y_batch_test = y_signal[:(numSamplesInitial + 1),:]
 #gets x_star_batch using the pseudoinvers
 x_star_batch = np.linalg.inv(A_test.T @ A_test) @ A_test.T @ y_batch_test
 
+print("x star batch: \n", x_star_batch)
+
 #---------Kalman Filter portion----------------------------
 #gets the same thing, but using the computational efficiency
 #of the kalman filter algorithm
