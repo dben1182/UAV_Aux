@@ -224,7 +224,7 @@ kalmanTestIndex = 11
 
 for n in range(numSamplesInitial,kalmanTestIndex):
     #gets the a_N vector
-    a_N = a_N_constructor(x_signal_shortened, y_signal, M=M, N=N, n=n):
+    a_N = a_N_constructor(x_signal_shortened, y_signal, M=M, N=N, n=n)
 
     #gets the kalman helper 
     kalman_helper = a_N.T @ P_N @ a_N
