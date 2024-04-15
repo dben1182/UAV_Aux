@@ -135,7 +135,7 @@ print("y_initial: \n", y_initial)
 #iterates through and gets the A matrix
 for n in range(numSamplesInitial):
     #gets a_n for each iteration
-    a_N = a_N_constructor(x_signal_shortened, y_signal_noisy, M=M, N=N, n=n)
+    a_N = a_N_constructor(x_signal_shortened, y_signal, M=M, N=N, n=n)
 
     #adds a_N to the temporary matrix
     A_initialization[n,:] = a_N.T
@@ -151,6 +151,10 @@ x_star = P_N @ A_initialization.T @ y_initial
 #prints out the P_N initial, and then prints out x_star initial
 print("P_N initial: \n", P_N)
 print("x_star_initial: \n", x_star)
+
+#gets the initial error
+initial_error = x_star - coefficients
+print("initial error: \n", initial_error)
 
 #gets the rank of P_N to see if it is invertible here
 P_N_initial_rank = np.linalg.matrix_rank(P_N)
@@ -171,13 +175,18 @@ print("P_N_dimensionality: \n", P_N_dimensionality)
 #for the remaining samples in the y array, we will perform the recursive kalman filter algorithm
 #using the initial P_N and the initial x_star which we just calculate
 
-#creates the A matrix
-A = np.zeros((shortenedSignalLength, numCoefficients))
 
+#sets the number of iterations for the kalman filter to run
+kalmanFilterNumIterations = 1000
+
+#creates the A matrix
+A = np.zeros((kalmanFilterNumIterations, numCoefficients))
+
+#creates the mean squared error vector
+mean_squared_error = np.zeros((kalmanFilterNumIterations, 1))
 
 #iterates through the y's we haven't used yet from our initialization
-
-for n in range(shortenedSignalLength):
+for n in range(kalmanFilterNumIterations):
     
     #gets the next a_N for this iteration
     a_N = a_N_constructor(x_signal_shortened, y_signal, M=M, N=N, n=n)
@@ -199,44 +208,35 @@ for n in range(shortenedSignalLength):
     #upates the x star estimate
     x_star = x_star + k_n*(y_signal[0][0] - x_star_helper[0][0])
 
+    #if n > 90000 and n < 90050:
+    #    print("gain: ", k_n*(y_signal[0][0] - x_star_helper[0][0]))
+
+    #gets the standing error
+    x_star_error = x_star - coefficients
+
+    mean_squared_error[n][0] = (np.linalg.norm(x_star_error))**2
+
+
+#plots the error
+plt.figure()
+plt.plot(mean_squared_error[400:])
+plt.title("Mean squared error of x star through samples")
+
 
 print("x_star final: \n", x_star)
 print("actual coefficients: \n", coefficients)
 x_star_error = x_star - coefficients
 print("x star error: \n", x_star_error)
 
+'''
 #gets the batch error
 x_star_batch = np.linalg.inv(A.T @ A) @ A.T @ y_signal
 print("x star batch: \n", x_star_batch)
 batch_error = x_star_batch - coefficients
 print("batch error: \n", batch_error)
-
+'''
 #-----------------------------------------------------------------------------------------------
 
 print("A test: \n", A[8:12,:])
 
-
-# %%
-
-#tries again in another context
-
-A_2 = np.zeros((shortenedSignalLength, numCoefficients))
-
-for n in range(shortenedSignalLength):
-
-    #calls the a_N constructor
-    a_N = a_N_constructor(x=x_signal_shortened, y=y_signal, M=M, N=N, n=n)
-
-    A_2[n,:] = a_N.T
-
-
-#gets the new x_star
-x_star_2 = np.linalg.inv(A_2.T @ A_2) @ A_2.T @ y_signal
-
-print("A2 test: \n", A_2[8:12])
-
-print("x star 2: \n", x_star_2)
-
-error = x_star_2 - coefficients
-print("x_star_2 error: \n", error)
 # %%
