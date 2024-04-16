@@ -157,6 +157,7 @@ errorChange = np.zeros((signalLengthShort,1))
 A = np.zeros((signalLengthShort, numCoefficients))
 
 
+
 #iterates through for each y sample to run the recursive least squares algorithm
 for n in range(signalLengthShort):
     
