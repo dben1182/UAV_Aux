@@ -5,6 +5,7 @@
 import sympy as sp
 import numpy as np
 
+from IPython.display import display, Latex
 
 #creates the rho, which is air density
 rho = sp.symbols('rho')
@@ -17,6 +18,14 @@ S = sp.symbols('S')
 
 #creates m, the mass of the mav
 m = sp.symbols('m')
+
+y_accel_x = (rho*(Va**2)*S)/(2*m)
+
+display(y_accel_x)
+
+
+
+# %%
 
 
 
