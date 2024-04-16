@@ -246,7 +246,7 @@ for n in range(numSamplesInitial,kalmanTestIndex):
     #updates the P_N
     P_N_kalman = P_N_kalman - k_N @ a_N.T @ P_N_kalman
     #updates the estimate x_n
-    x_star_kalman = x_star_kalman + k_N @ (y_signal[n][0] - (a_N.T @ x_star_kalman))
+    x_star_kalman = x_star_kalman + k_N @ (y_signal[n][0] - (a_N.T @ x_star_kalman)[0][0])
 
     #----------end recursive portion--------------------------------
     
@@ -295,13 +295,15 @@ print("kalman error: \n", x_star_kalman_error)
 
 
 #sets the number of initial samples
-numSamplesInitialNoisy = 100000
+numSamplesInitialNoisy = 10
 
 #instantiates the initial A matrix
 A_initial_Noisy = np.zeros((numSamplesInitialNoisy, numCoefficients))
 
 #creates the y initial vector with noise
 y_noisy_initial = y_signal_noisy[:numSamplesInitialNoisy,:]
+
+#gets the whole error as a function of 
 
 #iterates through and creates the A matrix
 for n in range(numSamplesInitialNoisy):
@@ -325,4 +327,46 @@ print("x_star_initial_noisy: \n", x_star_init_noisy)
 error_x_star_noisy = x_star_init_noisy - coefficients
 
 print("x star noisy error: \n", error_x_star_noisy)
+
+#%%
+#-----------------Recursive Algorithm-------------------------------------
+#now, in order to get the coefficient estimate, we need to use the kalman filter
+#adn recursively obtain each next sample
+
+#initializes the A matrix
+A_noisy = np.copy(A_initial_Noisy)
+
+#initializes the P_N matrix
+P_N_kalman_noisy = np.copy(P_N_initial_noisy)
+
+#initializes the x star noisy
+x_star_noisy = np.copy(x_star_init_noisy)
+
+#iterates through each of the sections
+for n in range(numSamplesInitialNoisy, shortenedSignalLength):
+
+    #gets the a_N vector
+    a_N = a_N_constructor(x_signal_shortened, y_signal_noisy, M=M, N=N, n=n)
+
+    #gets the kalman helper
+    kalman_helper = a_N.T @ P_N_kalman_noisy @ a_N
+
+    #gets the kalman gain
+    k_N = P_N_kalman_noisy @ a_N/(1.0 + kalman_helper[0][0])
+
+    #updates the P_N kalman noisy
+    P_N_kalman_noisy = P_N_kalman_noisy - k_N @ a_N.T @ P_N_kalman_noisy
+
+    #updates the estimate x_n
+    x_star_noisy = x_star_noisy + k_N @ (y_signal_noisy[n][0] - (a_N.T @ x_star_noisy))
+
+
+#gets the x_star_noisy error
+error_x_star_noisy = x_star_noisy - coefficients
+
+print("Error x star noisy: \n", error_x_star_noisy)
+
+
+
+
 # %%
