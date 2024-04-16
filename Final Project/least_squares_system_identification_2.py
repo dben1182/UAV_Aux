@@ -316,4 +316,4 @@ for n in range(numSamplesInitialNoisy):
 P_N_initial_noisy = np.linalg.inv(A_initial_Noisy.T @ A_initial_Noisy)
 
 #gets the x_star initial vector
-x_star_noisy = P_N_initial_noisy @ A_initial_Noisy.T @ y_noisy_initial
+x_star_init_noisy = P_N_initial_noisy @ A_initial_Noisy.T @ y_noisy_initial
