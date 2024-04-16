@@ -184,13 +184,16 @@ x_star_batch = np.linalg.inv(A_test.T @ A_test) @ A_test.T @ y_batch_test
 #of the kalman filter algorithm
 
 #gets the kalman gain helper
-kalman_helper = a_N.T @ P_N_initial @ a_N
+kalman_helper = np.matmul(np.matmul(a_N.T, P_N_initial), a_N)
+
+print("kalman helper: \n", kalman_helper[0][0])
+
 
 #gets the kalman gain
-k_N = P_N_initial @ a_N/(1.0 + kalman_helper[0][0])
+k_N = np.matmul(P_N_initial, a_N)/(1.0 + kalman_helper[0][0])
 
 #gets the new P_N
-P_N_kalman = P_N_initial - k_N @ a_N.T @ P_N_initial
+P_N_kalman = P_N_initial - np.matmul(np.matmul(k_N, a_N.T), P_N_initial)
 
 #gets the new x_n
 x_star_kalman = x_star_init + k_N*(y_signal[numSamplesInitial] - (a_N.T @ x_star_init)[0][0])
@@ -217,19 +220,64 @@ print("P_N difference: \n", P_N_difference)
 A = np.copy(A_initial)
 
 #initializes the P_N matrix
-P_N = np.copy(P_N_initial)
+P_N_kalman = np.copy(P_N_initial)
+
+#initializes the x_star
+x_star_kalman = np.copy(x_star_init)
 
 #sets the index to go up to for the test
-kalmanTestIndex = 11
+kalmanTestIndex = 100000
+
 
 for n in range(numSamplesInitial,kalmanTestIndex):
+    
+    #------------recursive portion------------------------------------
     #gets the a_N vector
     a_N = a_N_constructor(x_signal_shortened, y_signal, M=M, N=N, n=n)
 
     #gets the kalman helper 
-    kalman_helper = a_N.T @ P_N @ a_N
+    kalman_helper = a_N.T @ P_N_kalman @ a_N
 
     #gets the kalman gain
-    k_N = P_N @ a_N.T/(1.0 + kalman_helper[0][0])
+    k_N = P_N_kalman @ a_N/(1.0 + kalman_helper[0][0])
 
-    #updates the P_N   
+    #updates the P_N
+    P_N_kalman = P_N_kalman - k_N @ a_N.T @ P_N_kalman
+    #updates the estimate x_n
+    x_star_kalman = x_star_kalman + k_N @ (y_signal[n][0] - (a_N.T @ x_star_kalman))
+
+    #----------end recursive portion--------------------------------
+    
+    #----------batch portion-----------------------------------------
+    #gets the new A matrix
+    A = np.append(A, a_N.T, axis=0)
+    
+    if n == 99999:
+
+        #gets the new y
+        y_batch = y_signal[:(n+1),:]
+
+        #----------end batch portion-------------------------------------
+
+#gets P_N
+P_N_batch = np.linalg.inv(A.T @ A)
+#gets x_star_batch
+x_star_batch = P_N_batch @ A.T @ y_batch
+
+
+#gets the x star difference from kalman to batch
+x_star_difference = x_star_kalman - x_star_batch
+#gets the P_N_ difference from kalman to batch
+P_N_difference = P_N_kalman - P_N_batch
+print("x star difference: \n", x_star_difference)
+print("P_N error: \n", P_N_difference)   
+
+
+#gets the x star error, which is the difference between x star kalman
+#and the actual coefficients
+print("x_star_kalman: \n", x_star_kalman)
+x_star_kalman_error = x_star_kalman - coefficients
+print("kalman error: \n", x_star_kalman_error)
+
+
+# %%
