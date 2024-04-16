@@ -291,6 +291,29 @@ print("kalman error: \n", x_star_kalman_error)
 #of course mean noise. Noise was not, in this case added, so our errors were on
 #the order of 10e-12 or less. Totally negligible. But, at the beginning, we created
 #a signal with added noise, with which we would still like to extrapolate the 
-#characteristic system
+#characteristic system which has a particular input and a particular output
 
 
+#sets the number of initial samples
+numSamplesInitialNoisy = 10
+
+#instantiates the initial A matrix
+A_initial_Noisy = np.zeros((numSamplesInitialNoisy, numCoefficients))
+
+#creates the y initial vector with noise
+y_noisy_initial = y_signal_noisy[:numSamplesInitialNoisy,:]
+
+#iterates through and creates the A matrix
+for n in range(numSamplesInitialNoisy):
+    #gets the a_N for each iteration
+    #but of course, we are using the NOISY Y SIGNAL
+    a_N = a_N_constructor(x_signal_shortened, y_signal_noisy, M=M, N=N, n=n)
+
+    #adds the a_N to the A initialization matrix
+    A_initial_Noisy[n,:] = a_N.T
+
+#gets the P_N_initialization matrix
+P_N_initial_noisy = np.linalg.inv(A_initial_Noisy.T @ A_initial_Noisy)
+
+#gets the x_star initial vector
+x_star_noisy = P_N_initial_noisy @ A_initial_Noisy.T @ y_noisy_initial
