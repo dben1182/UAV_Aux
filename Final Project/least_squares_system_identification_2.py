@@ -89,14 +89,14 @@ y_signal_noisy = np.zeros((shortenedSignalLength, 1))
 
 #sets the mean and variance of the signal noise
 noiseMean = 0.0
-noiseVariance = 0.025
+noiseVariance = 0.00001
 #adds the noise to create the noisy signal
 for n in range(shortenedSignalLength):
     y_signal_noisy[n][0] = y_signal[n][0] + np.random.normal(loc=noiseMean, scale=noiseVariance)
 
 #sets the lower and upper limits of the plotting
-plotLower = 20000
-plotUpper = 20500
+plotLower = 90000
+plotUpper = 90500
 
 plt.figure()
 #plots he x_signal_shortened as well as the y signal
@@ -295,7 +295,7 @@ print("kalman error: \n", x_star_kalman_error)
 
 
 #sets the number of initial samples
-numSamplesInitialNoisy = 10
+numSamplesInitialNoisy = 100000
 
 #instantiates the initial A matrix
 A_initial_Noisy = np.zeros((numSamplesInitialNoisy, numCoefficients))
@@ -317,3 +317,12 @@ P_N_initial_noisy = np.linalg.inv(A_initial_Noisy.T @ A_initial_Noisy)
 
 #gets the x_star initial vector
 x_star_init_noisy = P_N_initial_noisy @ A_initial_Noisy.T @ y_noisy_initial
+
+print("x_star_initial_noisy: \n", x_star_init_noisy)
+
+#gets the initial error, which should be significantly larger than it was
+#for the non-noisy guess a while back
+error_x_star_noisy = x_star_init_noisy - coefficients
+
+print("x star noisy error: \n", error_x_star_noisy)
+# %%
