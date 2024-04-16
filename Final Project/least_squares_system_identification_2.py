@@ -261,6 +261,7 @@ for n in range(numSamplesInitial,kalmanTestIndex):
 
         #----------end batch portion-------------------------------------
 
+
 #gets P_N
 P_N_batch = np.linalg.inv(A.T @ A)
 #gets x_star_batch
@@ -283,3 +284,13 @@ print("kalman error: \n", x_star_kalman_error)
 
 
 # %%
+
+#-------------noise portion----------------------------------
+#the above procedure was all fine and dandy, but there was a slight problem.
+#It did not, in fact, take into account the real world, and by real world, I
+#of course mean noise. Noise was not, in this case added, so our errors were on
+#the order of 10e-12 or less. Totally negligible. But, at the beginning, we created
+#a signal with added noise, with which we would still like to extrapolate the 
+#characteristic system
+
+
