@@ -367,6 +367,10 @@ error_x_star_noisy = x_star_noisy - coefficients
 print("Error x star noisy: \n", error_x_star_noisy)
 
 
+#From this instance, the x star error does not decrease as a function of time, because 
+#noise is not only in the output, but it becomes part of the H matrix, because it is an IIR filter
+#this means feedback, which also means possible instability. Hence, I see why Dr. Jeffs
+#vastly prefers FIR filters, which have no chance of going unstable.
 
 
 # %%
