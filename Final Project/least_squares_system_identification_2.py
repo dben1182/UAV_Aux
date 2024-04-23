@@ -80,7 +80,7 @@ numCoefficients = N + M + 1
 
 
 #---------------------------------------------------------------
-#runs the linear filter on the signals with the as and bs (HA! you said 'bs')
+#runs the linear filter on the signals with the as and bs
 
 y_signal = linearFilter(b_original, a_original, x_signal_shortened)
 
